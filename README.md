@@ -1,112 +1,123 @@
-# MacroSentinel 🦅📡
+# MacroSentinel
 
-> **Radar Autónomo de Inteligencia Macroeconómica y Señales de Política Monetaria**
-
-MacroSentinel es un sistema automatizado de inteligencia financiera que ingesta indicadores macroeconómicos oficiales (FRED API), extrae y analiza comunicados de bancos centrales (Fed FOMC, BCE, etc.), evalúa el tono de política monetaria (*Hawkish* vs *Dovish*) con LLMs y genera reportes ejecutivos periódicos (**Macro Pulse**) con alertas de cambio de ciclo económico.
+Radar autónomo de inteligencia macroeconómica y señales de política monetaria. Ingesta indicadores cuantitativos oficiales de la Reserva Federal (FRED API), extrae comunicados de bancos centrales (Fed FOMC, BCE), evalúa el tono monetario (*Hawkish* vs *Dovish*) con modelos de razonamiento estructurado y genera informes periódicos (**Macro Pulse**) con visualizaciones de curvas de rendimiento.
 
 ---
 
-## 🧭 ¿Por qué existe este proyecto?
+## Motivación
 
-Los analistas, tesoreros e inversores se enfrentan a dos problemas constantes:
-1. **Sobrecarga de texto no estructurado:** Los discursos y minutas de los bancos centrales contienen decenas de páginas con lenguaje burocrático y cambios semánticos sutiles pero críticos.
-2. **Desconexión entre el dato duro y el discurso:** Los datos macroeconómicos (inflación, curva de rendimientos, desempleo, masa monetaria M2) se publican en calendarios dispersos y requieren cruzarse manualmente con la postura monetaria oficial.
+El análisis macroeconómico tradicional sufre dos fricciones recurrentes:
+1. **Sobrecarga de lenguaje burocrático:** Los comunicados y minutas de los bancos centrales acumulan decenas de páginas donde los cambios sutiles de sintaxis definen giros de política monetaria multimillonarios.
+2. **Desconexión entre datos duros y narrativa oficial:** Los indicadores de inflación (CPI, PCE), estructura temporal de rendimientos (curva 10Y-2Y) y empleo se publican en calendarios disjuntos y requieren cruce manual contra el discurso de los comités.
 
-**MacroSentinel** automatiza este pipeline mediante un patrón *Scanner $\rightarrow$ Filter $\rightarrow$ Reasoner $\rightarrow$ Dispatcher*, eliminando el ruido y entregando síntesis de alta convicción.
+MacroSentinel unifica este flujo mediante un pipeline automatizado de ingesta, deduplicación local, razonamiento estructurado y despacho multicanal.
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura
 
 ```
-[ Scheduled Worker / APScheduler ]
-               │
-               ├──> 1. FRED API Client ───> [ Tasas, Curva 10Y-2Y, CPI, M2, Desempleo ]
-               │
-               └──> 2. Central Bank Feeds ─> [ FOMC Statements, Minutas BCE, Discursos ]
-                               │
-                               ▼
-               [ Filtro de Novedades & Cache SQLite ]
-                               │
-                               ▼
-               [ LLM Reasoning Engine (Structured Outputs) ]
-                 - Puntuación Hawkish / Dovish (-1.0 a +1.0)
-                 - Diff semántico vs. reunión previa
-                 - Detección de anomalías macro (inversión de curva, shock CPI)
-                               │
-                               ▼
-               [ Report Generator & Chart Engine ] ──> "Macro Pulse Report"
-                               │
-                               ├──> 📱 Telegram Bot
-                               ├──> ✉️ Email (Resend / SMTP)
-                               └──> 💻 Rich Terminal CLI
+[ APScheduler Worker / CLI ]
+             │
+             ├──> 1. FRED Client ─────────> [ T10Y2Y, FEDFUNDS, DGS10, CPI, UNRATE, PAYEMS, M2 ]
+             │
+             └──> 2. Central Bank Feeds ──> [ FOMC Statements, ECB Press Releases ]
+                             │
+                             ▼
+             [ Filtro de Novedades & Cache SQLite WAL ]
+                             │
+                             ▼
+             [ Motor de Inferencia LLM (LiteLLM / Gemini / OpenAI) ]
+               - Evaluación continua de tono (-1.0 a +1.0)
+               - Detección de anomalías cuantitativas (inversión de curva, Sahm rule)
+               - Fallback determinista rule-based ante indisponibilidad de API
+                             │
+                             ▼
+             [ Generador de Gráficos (Matplotlib Agg) ]
+               - Visualización de la Curva de Rendimientos (10Y - 2Y Spread)
+                             │
+                             ▼
+             [ Generador de Reportes & Despacho ]
+               ├── Markdown Brief (`data/reports/MacroPulse_*.md`)
+               ├── Rich Terminal Dashboard
+               └── Alertas HTML a Telegram Bot
 ```
 
 ---
 
-## 📦 Módulos del Proyecto
+## Inicio Rápido
 
-* **`macro_sentinel/config/`**: Registro de series temporales de FRED (`T10Y2Y`, `CPIAUCSL`, `FEDFUNDS`, etc.) y configuración centralizada (`pydantic-settings`).
-* **`macro_sentinel/extractors/`**: Clientes asíncronos y tipados para FRED y extractores de comunicados de la Reserva Federal (FOMC) y Banco Central Europeo (BCE).
-* **`macro_sentinel/analyzer/`**: Esquemas estructurados (`Pydantic`) y motor de inferencia LLM para análisis de tono monetario y correlación cuantitativa.
-* **`macro_sentinel/scheduler/`**: Motor de tareas programadas con soporte para cron jobs periódicos y ejecuciones bajo demanda.
-* **`macro_sentinel/reports/`**: Generador del reporte semanal/diario *Macro Pulse* con gráficos de curvas macro.
-* **`macro_sentinel/dispatchers/`**: Canales de entrega (Telegram, Email, consola interactiva).
-
----
-
-## 🚀 Inicio Rápido
-
-### 1. Clonar e Instalar Dependencias
+### 1. Instalación
 
 ```bash
 # Con uv (recomendado)
 uv venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+source .venv/bin/activate  # En Windows: .\.venv\Scripts\activate
 uv pip install -e .
 
-# O con pip
+# O con pip tradicional
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
+pip install -e .
 ```
 
-### 2. Configurar Variables de Entorno
+### 2. Configuración
 
-Copia el archivo `.env.example` a `.env` y añade tus claves:
+Copia `.env.example` a `.env` y configura tus credenciales:
 
 ```bash
 cp .env.example .env
 ```
 
-Variables clave:
-* `FRED_API_KEY`: Clave gratuita de [Federal Reserve Economic Data](https://fred.stlouisfed.org/docs/api/api_key.html).
-* `GEMINI_API_KEY` o `OPENAI_API_KEY`: Proveedor de LLM.
-* `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` (opcional).
+| Variable | Requerido | Propósito |
+| :--- | :---: | :--- |
+| `FRED_API_KEY` | No (usa baseline) | Clave de acceso a [St. Louis Fed FRED](https://fred.stlouisfed.org/docs/api/api_key.html). |
+| `GEMINI_API_KEY` o `OPENAI_API_KEY` | No (usa fallback) | Clave para el motor de inferencia LLM. |
+| `LLM_MODEL` | No | Modelo destino (ej. `gemini/gemini-1.5-flash` o `openai/gpt-4o-mini`). |
+| `TELEGRAM_BOT_TOKEN` / `CHAT_ID` | No | Credenciales para alertas push automáticas. |
+| `SCAN_CRON_SCHEDULE` | No | Expresión cron para el daemon (por defecto: `0 8 * * 1-5`). |
 
-### 3. Comandos de Ejecución
+### 3. Comandos de la CLI
 
 ```bash
-# Ejecutar un escaneo y reporte inmediato en consola
+# Ejecutar un escaneo completo inmediato y renderizar en consola
 macro-sentinel scan --now
 
-# Iniciar el demonio de tareas programadas (Scheduler)
+# Iniciar el daemon de escaneos programados en segundo plano
 macro-sentinel daemon
 
-# Probar la conexión con las APIs externas
+# Listar las series temporales e instituciones registradas
+macro-sentinel list-series
+
+# Probar la conectividad de red con las APIs y feeds externos
 macro-sentinel test-apis
 ```
 
 ---
 
-## ⚠️ Limitaciones Conocidas & Trade-offs
+## Verificación y Pruebas
 
-1. **Latencia de FRED API:** Los datos macroeconómicos tienen revisiones retroactivas por parte de las agencias oficiales (BEA/BLS); el sistema utiliza datos de serie continua pero documenta si hubo revisiones.
-2. **Rate Limits:** Las llamadas a FRED están limitadas a 120 peticiones por minuto. El cliente incluye un mecanismo interno de rate-limiting con retroceso exponencial (*exponential backoff*).
-3. **Dependencia de Scraping en Bancos Centrales:** Las URLs de los portales de bancos centrales pueden cambiar de estructura; se recomienda usar feeds RSS oficiales como canal primario.
+La suite de pruebas ejecuta validaciones herméticas sin dependencias externas:
+
+```bash
+# Ejecutar linter
+ruff check .
+
+# Ejecutar tests unitarios e integrados
+pytest -v
+```
 
 ---
 
-## 📄 Licencia
+## Limitaciones Conocidas & Trade-offs
+
+1. **Revisiones de Datos FRED:** Series como Nonfarm Payrolls (`PAYEMS`) sufren revisiones retroactivas mensuales por parte de la BLS. El sistema lee el valor de serie continua más reciente disponible en la fecha de consulta.
+2. **Cálculo de Spreads en Tasas:** Las variaciones en tasas de interés (`unit == "Percent"`) se computan en **Puntos Básicos (bps)** en lugar de porcentaje relativo para evitar distorsiones matemáticas ante lecturas cercanas a cero.
+3. **Estructura de Feeds Centrales:** El parser RSS/Atom incluye soporte para etiquetas estándar de la Reserva Federal y el Banco Central Europeo. Cambios estructurales drásticos en las webs emisoras activan el generador de comunicados baseline sin detener el pipeline.
+
+---
+
+## Licencia
 
 MIT License — Creado por Dario.

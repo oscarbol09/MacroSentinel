@@ -30,7 +30,6 @@ class ConsoleDispatcher:
         self.console.rule("[bold cyan]🦅 MacroSentinel — Macro Pulse Intelligence Brief[/bold cyan]")
         self.console.print()
 
-        # Regime & Tone Panel
         score = report_data.tone_assessment.score
         score_color = "red" if score > 0.2 else ("green" if score < -0.2 else "yellow")
         stance_str = f"[{score_color}]{report_data.tone_assessment.stance.value} ({score:+.2f})[/{score_color}]"
@@ -42,7 +41,6 @@ class ConsoleDispatcher:
         )
         self.console.print(Panel(header_text, title="🎯 Monetary Policy & Macro State", border_style="cyan"))
 
-        # Executive Summary Panel
         self.console.print(
             Panel(
                 f"[italic]{report_data.executive_summary}[/italic]",
@@ -51,7 +49,6 @@ class ConsoleDispatcher:
             )
         )
 
-        # Macro Indicators Table
         table = Table(title="📈 Macroeconomic Indicators Dashboard (FRED Data)", show_header=True, header_style="bold magenta")
         table.add_column("Indicator", style="bold")
         table.add_column("Category")
@@ -61,7 +58,10 @@ class ConsoleDispatcher:
 
         for dp in macro_points:
             delta_str = "—"
-            if dp.delta is not None and dp.delta_percentage is not None:
+            if dp.delta_bps is not None:
+                color = "green" if dp.delta_bps >= 0 else "red"
+                delta_str = f"[{color}]{dp.delta:+.2f} ({dp.delta_bps:+.1f} bps)[/{color}]"
+            elif dp.delta is not None and dp.delta_percentage is not None:
                 color = "green" if dp.delta >= 0 else "red"
                 delta_str = f"[{color}]{dp.delta:+.2f} ({dp.delta_percentage:+.1f}%)[/{color}]"
 
@@ -76,7 +76,6 @@ class ConsoleDispatcher:
         self.console.print(table)
         self.console.print()
 
-        # Anomalies Panel if any
         if report_data.anomalies:
             anomaly_lines = []
             for a in report_data.anomalies:
@@ -90,13 +89,11 @@ class ConsoleDispatcher:
                 Panel("\n".join(anomaly_lines), title="🚨 Anomalías y Señales de Riesgo", border_style="red")
             )
 
-        # Cross-Asset Panel
         cross_lines = [f"[bold green]•[/bold green] {item}" for item in report_data.cross_asset_implications]
         self.console.print(
             Panel("\n".join(cross_lines), title="💼 Implicaciones por Clase de Activo", border_style="green")
         )
 
-        # Watchpoints
         watch_lines = [f"[bold yellow]⏱️[/bold yellow] {item}" for item in report_data.actionable_watchpoints]
         self.console.print(
             Panel("\n".join(watch_lines), title="🔭 Catalizadores a Vigilar (Watchpoints)", border_style="yellow")

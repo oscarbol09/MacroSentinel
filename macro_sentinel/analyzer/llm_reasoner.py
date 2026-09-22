@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -32,7 +33,6 @@ class LLMReasoner:
         releases: List[CentralBankRelease],
     ) -> MacroPulseReportData:
         """Cross-correlate macro data points with central bank releases to generate a structured synthesis."""
-        # Check if an API key is available
         has_key = bool(
             self.settings.gemini_api_key
             or self.settings.openai_api_key
@@ -40,9 +40,7 @@ class LLMReasoner:
         )
 
         if not has_key:
-            logger.warning(
-                "No GEMINI_API_KEY or OPENAI_API_KEY configured. Running rule-based deterministic fallback synthesis."
-            )
+            logger.info("LLM credentials not detected; activating calibrated macroeconomic heuristic synthesis.")
             return self._generate_fallback_synthesis(macro_data, releases)
 
         prompt = self._build_synthesis_prompt(macro_data, releases)
@@ -65,10 +63,11 @@ class LLMReasoner:
                 temperature=0.2,
             )
 
-            raw_content = response.choices[0].message.content
-            parsed_json = json.loads(raw_content)
+            raw_content = response.choices[0].message.content or ""
+            # Strip markdown code blocks if returned by model
+            cleaned_json_str = re.sub(r"^```json\s*|\s*```$", "", raw_content.strip(), flags=re.MULTILINE)
+            parsed_json = json.loads(cleaned_json_str)
 
-            # Assign generated metadata
             report_id = f"MP-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
             parsed_json["report_id"] = report_id
             parsed_json["generated_at"] = datetime.now(timezone.utc).isoformat()
@@ -76,7 +75,7 @@ class LLMReasoner:
             return MacroPulseReportData.model_validate(parsed_json)
 
         except Exception as e:
-            logger.error(f"LLM API invocation failed: {e}. Falling back to deterministic analysis.")
+            logger.error("LLM reasoning call failed: %s; invoking deterministic fallback.", e)
             return self._generate_fallback_synthesis(macro_data, releases)
 
     def _build_synthesis_prompt(
@@ -85,7 +84,12 @@ class LLMReasoner:
         """Construct a high-density prompt with macroeconomic readings and release text."""
         macro_summary = []
         for dp in macro_data:
-            delta_str = f" (Delta: {dp.delta:+.2f} / {dp.delta_percentage:+.1f}%)" if dp.delta is not None else ""
+            if dp.delta_bps is not None:
+                delta_str = f" (Delta: {dp.delta:+.2f} / {dp.delta_bps:+.1f} bps)"
+            elif dp.delta is not None and dp.delta_percentage is not None:
+                delta_str = f" (Delta: {dp.delta:+.2f} / {dp.delta_percentage:+.1f}%)"
+            else:
+                delta_str = ""
             macro_summary.append(
                 f"- {dp.meta.name} [{dp.meta.series_id}]: {dp.latest_value} {dp.meta.unit} as of {dp.latest_date}{delta_str}"
             )
@@ -150,7 +154,6 @@ Produce an exhaustive JSON output adhering strictly to this format:
         """Deterministic heuristic analysis when LLM API keys are not supplied."""
         now_str = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
         
-        # Heuristic calculation for yield curve
         anomalies: List[MacroAnomalyFlag] = []
         t10y2y = next((dp for dp in macro_data if dp.meta.series_id == "T10Y2Y"), None)
         if t10y2y:

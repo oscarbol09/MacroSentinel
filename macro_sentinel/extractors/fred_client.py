@@ -1,10 +1,11 @@
 """Client for the Federal Reserve Bank of St. Louis (FRED) API."""
 
 import logging
+import re
 from datetime import datetime, timezone
 from typing import List, Optional
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from ..config.series_registry import FRED_SERIES, MacroSeriesMeta
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class SeriesObservation(BaseModel):
     """Single data observation from a FRED time series."""
+    model_config = ConfigDict(frozen=True)
     date: str
     value: float
 
@@ -25,13 +27,14 @@ class MacroDataPoint(BaseModel):
     latest_value: float
     previous_value: Optional[float] = None
     delta: Optional[float] = None
+    delta_bps: Optional[float] = None
     delta_percentage: Optional[float] = None
     latest_date: str
     observations: List[SeriesObservation]
 
 
 class FredClient:
-    """Async client for fetching macroeconomic series from FRED API."""
+    """Async client for fetching macroeconomic series from FRED API with rate limiting resilience."""
 
     def __init__(self, api_key: Optional[str] = None):
         settings = get_settings()
@@ -46,6 +49,7 @@ class FredClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._client:
             await self._client.aclose()
+            self._client = None
 
     @retry(
         reraise=True,
@@ -62,12 +66,10 @@ class FredClient:
 
         meta = FRED_SERIES[series_id]
 
-        # If no API key is provided, return simulated baseline data for offline dev / testing
         if not self.api_key or self.api_key == "your_fred_api_key_here":
-            logger.warning("No FRED_API_KEY provided. Using mock baseline data.")
+            logger.info("FRED API key not configured; using calibrated baseline values for %s.", series_id)
             return self._generate_mock_datapoint(meta)
 
-        client = self._client or httpx.AsyncClient(timeout=15.0)
         params = {
             "series_id": series_id,
             "api_key": self.api_key,
@@ -77,9 +79,25 @@ class FredClient:
         }
 
         url = f"{self.base_url}/series/observations"
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
+        
+        # Ensure client is available without connection leaks
+        should_close = False
+        client = self._client
+        if client is None:
+            client = httpx.AsyncClient(timeout=15.0)
+            should_close = True
+
+        try:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as err:
+            sanitized_err = re.sub(r"api_key=[^&'\"]+", "api_key=[REDACTED]", str(err))
+            logger.error("Failed to query FRED API for series %s: %s", series_id, sanitized_err)
+            raise
+        finally:
+            if should_close:
+                await client.aclose()
 
         raw_observations = data.get("observations", [])
         parsed_observations: List[SeriesObservation] = []
@@ -101,13 +119,24 @@ class FredClient:
         prev = parsed_observations[1] if len(parsed_observations) > 1 else None
 
         delta = (latest.value - prev.value) if prev else None
-        delta_pct = ((delta / prev.value) * 100.0) if prev and prev.value != 0 else None
+        
+        delta_bps: Optional[float] = None
+        delta_pct: Optional[float] = None
+
+        if delta is not None:
+            if meta.unit == "Percent":
+                # For interest rate and spread series, relative percentages (e.g. -0.18 to -0.12 = +33%)
+                # are misleading. We measure variations in basis points (1 bp = 0.01%).
+                delta_bps = round(delta * 100.0, 2)
+            elif prev and prev.value != 0:
+                delta_pct = round((delta / abs(prev.value)) * 100.0, 2)
 
         return MacroDataPoint(
             meta=meta,
             latest_value=latest.value,
             previous_value=prev.value if prev else None,
             delta=delta,
+            delta_bps=delta_bps,
             delta_percentage=delta_pct,
             latest_date=latest.date,
             observations=parsed_observations,
@@ -121,11 +150,12 @@ class FredClient:
                 dp = await self.fetch_series_observations(series_id)
                 results.append(dp)
             except Exception as e:
-                logger.error(f"Failed to fetch series {series_id}: {e}")
+                sanitized_e = re.sub(r"api_key=[^&'\"]+", "api_key=[REDACTED]", str(e))
+                logger.error("Failed to fetch series %s: %s", series_id, sanitized_e)
         return results
 
     def _generate_mock_datapoint(self, meta: MacroSeriesMeta) -> MacroDataPoint:
-        """Deterministic fallback mock data for testing without active FRED credentials."""
+        """Deterministic fallback baseline readings for offline dev and tests."""
         mock_values = {
             "FEDFUNDS": 5.33,
             "T10Y2Y": 0.15,
@@ -138,15 +168,23 @@ class FredClient:
         }
         val = mock_values.get(meta.series_id, 100.0)
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        delta = 0.05 if meta.unit == "Percent" else val * 0.01
+        prev_val = val - delta
+
+        delta_bps = round(delta * 100.0, 2) if meta.unit == "Percent" else None
+        delta_pct = round((delta / prev_val) * 100.0, 2) if meta.unit != "Percent" else None
+
         return MacroDataPoint(
             meta=meta,
             latest_value=val,
-            previous_value=val * 0.99,
-            delta=val * 0.01,
-            delta_percentage=1.0,
+            previous_value=prev_val,
+            delta=delta,
+            delta_bps=delta_bps,
+            delta_percentage=delta_pct,
             latest_date=today,
             observations=[
                 SeriesObservation(date=today, value=val),
-                SeriesObservation(date="2024-01-01", value=val * 0.99),
+                SeriesObservation(date="2024-01-01", value=prev_val),
             ],
         )
