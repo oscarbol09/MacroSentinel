@@ -120,4 +120,4 @@ pytest -v
 
 ## Licencia
 
-MIT License — Creado por Dario.
+MIT License — Oscar Madera (@oscarbol09).

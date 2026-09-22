@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="es" class="scroll-smooth dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MacroSentinel — Autonomous Macroeconomic & Central Bank Intelligence</title>
-  <meta name="description" content="Autonomous financial intelligence engine ingesting FRED macroeconomic series, parsing central bank communications, and synthesizing Hawkish-Dovish policy regimes.">
+  <title>MacroSentinel — Documentación y Radar Macroeconómico</title>
+  <meta name="description" content="Motor autónomo de inteligencia financiera que monitoriza series macroeconómicas de FRED y evalúa el tono de política monetaria de bancos centrales.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -15,21 +15,18 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Geist', 'system-ui', 'sans-serif'],
-            mono: ['"Geist Mono"', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
-            sentinel: {
-              50: '#f0f9ff',
-              400: '#38bdf8',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              900: '#082f49',
-              950: '#030712',
-            },
-            hawkish: '#ef4444',
-            dovish: '#10b981',
-            neutral: '#eab308',
+            brand: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              500: '#0284c7',
+              600: '#0369a1',
+              900: '#0f172a',
+              950: '#020617',
+            }
           }
         }
       }
@@ -37,173 +34,157 @@
   </script>
   <style>
     body {
-      background-color: #030712;
-      color: #f3f4f6;
-      font-family: 'Geist', sans-serif;
+      background-color: #0b0f17;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .glow-cyan {
-      box-shadow: 0 0 50px -10px rgba(14, 165, 233, 0.25);
+    .panel-card {
+      background: #111827;
+      border: 1px solid #1f2937;
     }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    .panel-card:hover {
+      border-color: #374151;
     }
-    .glass-card:hover {
-      border-color: rgba(56, 189, 248, 0.25);
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #0b0f19;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 3px;
+    .code-block {
+      background: #030712;
+      border: 1px solid #1e293b;
     }
   </style>
 </head>
-<body class="min-h-screen selection:bg-cyan-500 selection:text-black">
+<body class="min-h-screen antialiased selection:bg-sky-500 selection:text-white">
 
-  <!-- Navigation Bar -->
-  <header class="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-md">
+  <!-- Barra de Navegación -->
+  <header class="sticky top-0 z-50 w-full border-b border-gray-800 bg-gray-950/90 backdrop-blur">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <span class="text-2xl">🦅</span>
-        <span class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
-          MacroSentinel
-          <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono">v0.1.0</span>
-        </span>
+        <a href="#" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight">
+          <span class="text-xl">🦅</span>
+          <span>MacroSentinel</span>
+        </a>
+        <span class="text-xs px-2.5 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800 font-mono">v0.1.0</span>
       </div>
-      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-        <a href="#overview" class="hover:text-cyan-400 transition-colors">Overview</a>
-        <a href="#simulator" class="hover:text-cyan-400 transition-colors">Tone Simulator</a>
-        <a href="#architecture" class="hover:text-cyan-400 transition-colors">Architecture</a>
-        <a href="#series" class="hover:text-cyan-400 transition-colors">Series Registry</a>
-        <a href="#cli" class="hover:text-cyan-400 transition-colors">CLI Reference</a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+        <a href="#inicio" class="hover:text-white transition-colors">Inicio</a>
+        <a href="#simulador" class="hover:text-white transition-colors">Simulador de Tono</a>
+        <a href="#arquitectura" class="hover:text-white transition-colors">Arquitectura</a>
+        <a href="#series" class="hover:text-white transition-colors">Series FRED</a>
+        <a href="#comandos" class="hover:text-white transition-colors">Comandos CLI</a>
       </nav>
+
       <div class="flex items-center gap-3">
-        <a href="https://github.com/oscarbol09/MacroSentinel" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all">
+        <a href="https://github.com/oscarbol09/MacroSentinel" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white transition-all">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          GitHub
+          <span>GitHub</span>
         </a>
       </div>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="relative pt-20 pb-24 overflow-hidden" id="overview">
-    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-950/40 via-slate-950 to-slate-950"></div>
+  <section class="pt-16 pb-20 border-b border-gray-800/80" id="inicio">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-6">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-        Autonomous Central Bank & Macro Intelligence Engine
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-gray-300 text-xs font-mono mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        Motor de Inferencia y Monitoreo Financiero
       </div>
-      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-tight">
-        High-Conviction Macroeconomic Radar & Monetary Tone Analysis
+
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+        Inteligencia Macroeconómica y Radar de Política Monetaria
       </h1>
-      <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-        Ingesting continuous Federal Reserve (FRED) time-series, parsing FOMC and ECB communications, and synthesizing structured monetary regimes with quantitative precision.
+
+      <p class="mt-6 text-base sm:text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        Ingesta indicadores oficiales de la Reserva Federal (FRED), analiza comunicados del FOMC y BCE, clasifica el tono monetario (Hawkish/Dovish) y compila informes ejecutivos periódicos con visualizaciones de curvas de rendimiento.
       </p>
 
-      <!-- Terminal Quickstart Box -->
-      <div class="mt-10 max-w-xl mx-auto bg-slate-900/90 border border-white/10 rounded-xl p-4 text-left font-mono text-sm glow-cyan shadow-2xl">
-        <div class="flex items-center justify-between text-slate-500 pb-3 border-b border-white/5 text-xs">
-          <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+      <!-- Terminal Quickstart -->
+      <div class="mt-10 max-w-xl mx-auto text-left">
+        <div class="code-block rounded-lg p-4 font-mono text-sm shadow-xl">
+          <div class="flex items-center justify-between text-gray-500 pb-3 border-b border-gray-800 text-xs">
+            <span>bash — instalación y escaneo inmediato</span>
+            <button onclick="copiarComando()" class="text-xs text-sky-400 hover:text-sky-300 transition-colors">Copiar</button>
           </div>
-          <span>bash — quickstart</span>
-        </div>
-        <div class="pt-3 flex items-center justify-between text-slate-300">
-          <code><span class="text-cyan-400">$</span> pip install -r requirements.txt && macro-sentinel scan --now</code>
-          <button onclick="copyCommand()" class="text-xs px-2.5 py-1 bg-white/5 hover:bg-white/10 text-cyan-400 border border-cyan-500/30 rounded transition-all">Copy</button>
+          <div class="pt-3 text-gray-300 overflow-x-auto whitespace-nowrap">
+            <span class="text-sky-400 font-bold">$</span> pip install -r requirements.txt && macro-sentinel scan --now
+          </div>
         </div>
       </div>
 
-      <!-- Feature Pill Grid -->
-      <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-        <div class="p-4 rounded-xl glass-card">
-          <div class="text-cyan-400 text-xs font-mono font-bold">01 / QUANT INGESTION</div>
-          <div class="text-white font-semibold mt-1">FRED API & Rates</div>
-          <div class="text-xs text-slate-400 mt-1">Basis points (bps) precision on yield spreads & policy rates.</div>
+      <!-- Métricas Clave / Resumen -->
+      <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto text-left font-sans">
+        <div class="panel-card p-5 rounded-xl">
+          <div class="text-xs font-mono text-sky-400 uppercase font-bold">Datos Oficiales FRED</div>
+          <div class="text-white font-semibold text-base mt-1">Cálculo en Puntos Básicos</div>
+          <p class="text-gray-400 text-xs mt-2">Diferencia variaciones de tasas (bps) de índices (% MoM) eliminando distorsiones matemáticas.</p>
         </div>
-        <div class="p-4 rounded-xl glass-card">
-          <div class="text-cyan-400 text-xs font-mono font-bold">02 / NLP SENTIMENT</div>
-          <div class="text-white font-semibold mt-1">Hawkish-Dovish Meter</div>
-          <div class="text-xs text-slate-400 mt-1">Continuous scoring [-1.0, +1.0] with confidence metrics.</div>
+        <div class="panel-card p-5 rounded-xl">
+          <div class="text-xs font-mono text-sky-400 uppercase font-bold">Deduplicación SQLite</div>
+          <div class="text-white font-semibold text-base mt-1">Persistencia con Modo WAL</div>
+          <p class="text-gray-400 text-xs mt-2">Almacena hashes SHA-256 de comunicados procesados y registra la trayectoria histórica de posturas.</p>
         </div>
-        <div class="p-4 rounded-xl glass-card">
-          <div class="text-cyan-400 text-xs font-mono font-bold">03 / PERSISTENCE</div>
-          <div class="text-white font-semibold mt-1">SQLite WAL Store</div>
-          <div class="text-xs text-slate-400 mt-1">Content SHA-256 deduplication and score trajectory.</div>
-        </div>
-        <div class="p-4 rounded-xl glass-card">
-          <div class="text-cyan-400 text-xs font-mono font-bold">04 / DISPATCH</div>
-          <div class="text-white font-semibold mt-1">Multi-Channel Alerts</div>
-          <div class="text-xs text-slate-400 mt-1">Rich CLI dashboard, Markdown briefs & Telegram bot.</div>
+        <div class="panel-card p-5 rounded-xl">
+          <div class="text-xs font-mono text-sky-400 uppercase font-bold">Inferencia Resiliente</div>
+          <div class="text-white font-semibold text-base mt-1">Fallback Determinista</div>
+          <p class="text-gray-400 text-xs mt-2">Evalúa posturas y anomalías (curva invertida, regla de Sahm) con LLMs o mediante reglas cuantitativas offline.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Tone & Asset Allocation Simulator -->
-  <section class="py-20 border-t border-white/5 bg-slate-950" id="simulator">
+  <!-- Simulador de Tono Monetario y Asignación de Activos -->
+  <section class="py-16 border-b border-gray-800/80 bg-gray-950/40" id="simulador">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto">
-        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400">Interactive Engine Simulation</h2>
-        <h3 class="text-3xl font-extrabold text-white mt-2">Monetary Policy Tone & Cross-Asset Matrix</h3>
-        <p class="text-slate-400 mt-3 text-sm">Drag the monetary policy stance slider to preview how MacroSentinel classifies the macro regime, maps central bank language, and projects asset class impacts.</p>
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-sky-400">Herramienta Interactiva</h2>
+        <h3 class="text-2xl sm:text-3xl font-bold text-white mt-1">Simulador de Postura Monetaria y Transmisión de Activos</h3>
+        <p class="text-gray-400 mt-2 text-sm">Ajusta el termómetro de política monetaria para observar cómo MacroSentinel clasifica el régimen económico y proyecta el impacto en cada clase de activo.</p>
       </div>
 
-      <div class="mt-12 max-w-4xl mx-auto glass-card rounded-2xl p-6 sm:p-8 border border-white/10">
-        <!-- Slider Control -->
-        <div class="space-y-4">
-          <div class="flex justify-between items-center text-sm font-mono">
-            <span class="text-dovish font-bold">DOVISH [-1.0]</span>
-            <span id="toneScoreDisplay" class="text-lg font-extrabold text-white px-3 py-1 bg-slate-800 rounded-lg border border-white/10">+0.20</span>
-            <span class="text-hawkish font-bold">[+1.0] HAWKISH</span>
+      <div class="mt-10 max-w-4xl mx-auto panel-card rounded-xl p-6 sm:p-8">
+        <!-- Control Deslizante -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center text-xs font-mono">
+            <span class="text-emerald-400 font-bold">DOVISH [-1.0]</span>
+            <span id="scoreBadge" class="text-base font-bold text-amber-400 px-3 py-1 bg-gray-900 border border-gray-700 rounded-md">+0.20</span>
+            <span class="text-rose-400 font-bold">[+1.0] HAWKISH</span>
           </div>
-          <input type="range" id="toneSlider" min="-1.0" max="1.0" step="0.05" value="0.20" class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateSimulator(this.value)">
-          <div class="flex justify-between text-xs font-mono text-slate-500">
-            <span>Aggressive Easing</span>
-            <span>Neutral (2.0% Target)</span>
-            <span>Aggressive Tightening</span>
+          <input type="range" id="sliderTono" min="-1.0" max="1.0" step="0.05" value="0.20" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-sky-500" oninput="actualizarSimulador(this.value)">
+          <div class="flex justify-between text-[11px] font-mono text-gray-500">
+            <span>Expansión Monetaria Agresiva</span>
+            <span>Postura Neutral (Meta 2.0%)</span>
+            <span>Restricción / Subida de Tasas</span>
           </div>
         </div>
 
-        <!-- Dynamic Output Grid -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/10">
+        <!-- Panel de Resultados del Simulador -->
+        <div class="mt-8 pt-6 border-t border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-4">
             <div>
-              <div class="text-xs font-mono text-slate-400 uppercase">Classified Macro Regime</div>
-              <div id="regimeTitle" class="text-xl font-bold text-cyan-400 mt-1">Late-Cycle Restrictive Stance</div>
+              <div class="text-xs font-mono text-gray-400 uppercase">Régimen Macroeconómico Clasificado</div>
+              <div id="tituloRegimen" class="text-lg font-bold text-amber-400 mt-1">Postura Restrictiva de Fin de Ciclo</div>
             </div>
             <div>
-              <div class="text-xs font-mono text-slate-400 uppercase">Central Bank Vocabulary Shift</div>
-              <div id="vocabularyBox" class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-white/5 mt-1 font-mono">
-                "Inflation remains somewhat elevated; committee is highly attentive to inflation risks."
+              <div class="text-xs font-mono text-gray-400 uppercase">Vocabulario del Comité Central</div>
+              <div id="cajaVocabulario" class="text-xs text-gray-300 bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-1 font-mono leading-relaxed">
+                "La inflación continúa algo elevada; el comité mantiene una postura dependiente de los datos y atento a los riesgos en ambos mandatos."
               </div>
             </div>
           </div>
 
           <div class="space-y-3">
-            <div class="text-xs font-mono text-slate-400 uppercase">Cross-Asset Allocation Playbook</div>
-            <div id="allocationList" class="space-y-2 text-xs">
-              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-white/5 flex items-start gap-2">
-                <span class="text-cyan-400 font-bold">Fixed Income:</span>
-                <span id="allocBonds" class="text-slate-300">Duration risk attractive as peak policy rates cap long yields.</span>
+            <div class="text-xs font-mono text-gray-400 uppercase">Implicaciones por Clase de Activo (Cross-Asset)</div>
+            <div class="space-y-2 text-xs">
+              <div class="p-2.5 rounded-md bg-gray-900/90 border border-gray-800 flex items-start gap-2">
+                <span class="text-sky-400 font-bold min-w-[90px]">Renta Fija:</span>
+                <span id="txtRentaFija" class="text-gray-300">Riesgo de duración atractivo; tasas terminales limitan subidas adicionales en yields largos.</span>
               </div>
-              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-white/5 flex items-start gap-2">
-                <span class="text-cyan-400 font-bold">Equities:</span>
-                <span id="allocEquities" class="text-slate-300">Quality cash-generative value outperforms high-multiple beta.</span>
+              <div class="p-2.5 rounded-md bg-gray-900/90 border border-gray-800 flex items-start gap-2">
+                <span class="text-sky-400 font-bold min-w-[90px]">Acciones:</span>
+                <span id="txtAcciones" class="text-gray-300">Compañías generadoras de flujo de caja libre de calidad superan a sectores de beta alta.</span>
               </div>
-              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-white/5 flex items-start gap-2">
-                <span class="text-cyan-400 font-bold">FX / USD:</span>
-                <span id="allocFX" class="text-slate-300">Broad dollar supported by positive real rate differentials.</span>
+              <div class="p-2.5 rounded-md bg-gray-900/90 border border-gray-800 flex items-start gap-2">
+                <span class="text-sky-400 font-bold min-w-[90px]">Divisas / USD:</span>
+                <span id="txtDivisas" class="text-gray-300">Dólar respaldado por diferenciales de tasas de interés frente a otros bancos centrales.</span>
               </div>
             </div>
           </div>
@@ -212,75 +193,75 @@
     </div>
   </section>
 
-  <!-- Macro Indicators Registry -->
-  <section class="py-20 border-t border-white/5 bg-slate-900/30" id="series">
+  <!-- Registro de Series FRED -->
+  <section class="py-16 border-b border-gray-800/80" id="series">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400">Quantitative Indicators</h2>
-        <h3 class="text-3xl font-extrabold text-white mt-2">Curated Macroeconomic Series Registry</h3>
-        <p class="text-slate-400 mt-3 text-sm">Official time series continuously polled from the Federal Reserve Bank of St. Louis (FRED) API.</p>
+        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-sky-400">Datos Macroeconómicos</h2>
+        <h3 class="text-2xl sm:text-3xl font-bold text-white mt-1">Registro de Indicadores Cuantitativos (FRED)</h3>
+        <p class="text-gray-400 mt-2 text-sm">Series temporales monitoreadas continuamente mediante la API oficial del Banco de la Reserva Federal de St. Louis.</p>
       </div>
 
-      <div class="mt-12 overflow-x-auto rounded-xl border border-white/10 glass-card">
-        <table class="min-w-full divide-y divide-white/10 text-left text-sm font-mono">
-          <thead class="bg-slate-950/80 text-xs uppercase text-slate-400">
+      <div class="mt-10 overflow-x-auto rounded-xl border border-gray-800 bg-gray-950">
+        <table class="min-w-full divide-y divide-gray-800 text-left text-xs font-mono">
+          <thead class="bg-gray-900/60 text-gray-400 uppercase">
             <tr>
-              <th class="px-6 py-4">Series ID</th>
-              <th class="px-6 py-4">Indicator Name</th>
-              <th class="px-6 py-4">Category</th>
-              <th class="px-6 py-4">Unit & Calculation</th>
-              <th class="px-6 py-4">Frequency</th>
+              <th class="px-5 py-3.5">ID de Serie</th>
+              <th class="px-5 py-3.5">Nombre del Indicador</th>
+              <th class="px-5 py-3.5">Categoría</th>
+              <th class="px-5 py-3.5">Métrica & Unidad</th>
+              <th class="px-5 py-3.5">Frecuencia</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5 text-slate-300 text-xs">
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">T10Y2Y</td>
-              <td class="px-6 py-4 text-white font-medium">10Y Minus 2Y Treasury Yield Spread</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Yield Curve</span></td>
-              <td class="px-6 py-4 text-amber-300">Percent (Delta in Basis Points)</td>
-              <td class="px-6 py-4 text-slate-400">Daily</td>
+          <tbody class="divide-y divide-gray-800/60 text-gray-300">
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">T10Y2Y</td>
+              <td class="px-5 py-3.5 text-white font-medium">Diferencial de Rendimiento Tesoro 10Y - 2Y</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Curva de Tipos</span></td>
+              <td class="px-5 py-3.5 text-amber-300">Porcentaje (Variación en Basis Points)</td>
+              <td class="px-5 py-3.5 text-gray-400">Diaria</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">FEDFUNDS</td>
-              <td class="px-6 py-4 text-white font-medium">Federal Funds Effective Rate</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Monetary Policy</span></td>
-              <td class="px-6 py-4 text-amber-300">Percent (Delta in Basis Points)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">FEDFUNDS</td>
+              <td class="px-5 py-3.5 text-white font-medium">Tasa Efectiva de Fondos Federales</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Política Monetaria</span></td>
+              <td class="px-5 py-3.5 text-amber-300">Porcentaje (Variación en Basis Points)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">CPIAUCSL</td>
-              <td class="px-6 py-4 text-white font-medium">Consumer Price Index (Headline CPI)</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Inflation</span></td>
-              <td class="px-6 py-4 text-emerald-300">Index (Relative Percentage % MoM)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">CPIAUCSL</td>
+              <td class="px-5 py-3.5 text-white font-medium">Índice de Precios al Consumidor (CPI Headline)</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">Inflación</span></td>
+              <td class="px-5 py-3.5 text-emerald-300">Índice (Variación Relativa % MoM)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">CPILFESL</td>
-              <td class="px-6 py-4 text-white font-medium">Core CPI (Excluding Food & Energy)</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Inflation</span></td>
-              <td class="px-6 py-4 text-emerald-300">Index (Relative Percentage % MoM)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">CPILFESL</td>
+              <td class="px-5 py-3.5 text-white font-medium">CPI Subyacente (Sin Alimentos ni Energía)</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">Inflación</span></td>
+              <td class="px-5 py-3.5 text-emerald-300">Índice (Variación Relativa % MoM)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">UNRATE</td>
-              <td class="px-6 py-4 text-white font-medium">Civilian Unemployment Rate</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Labor Market</span></td>
-              <td class="px-6 py-4 text-amber-300">Percent (Delta in Basis Points)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">UNRATE</td>
+              <td class="px-5 py-3.5 text-white font-medium">Tasa de Desempleo Civil</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Mercado Laboral</span></td>
+              <td class="px-5 py-3.5 text-amber-300">Porcentaje (Variación en Basis Points)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">PAYEMS</td>
-              <td class="px-6 py-4 text-white font-medium">Total Nonfarm Payrolls (NFP)</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Labor Market</span></td>
-              <td class="px-6 py-4 text-emerald-300">Thousands (Relative % MoM)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">PAYEMS</td>
+              <td class="px-5 py-3.5 text-white font-medium">Nóminas No Agrícolas (Nonfarm Payrolls)</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Mercado Laboral</span></td>
+              <td class="px-5 py-3.5 text-emerald-300">Miles de Personas (Variación % MoM)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="px-6 py-4 font-bold text-cyan-400">M2SL</td>
-              <td class="px-6 py-4 text-white font-medium">M2 Real Money Supply</td>
-              <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Liquidity</span></td>
-              <td class="px-6 py-4 text-emerald-300">Billions (Relative % MoM)</td>
-              <td class="px-6 py-4 text-slate-400">Monthly</td>
+            <tr class="hover:bg-gray-900/40 transition-colors">
+              <td class="px-5 py-3.5 font-bold text-sky-400">M2SL</td>
+              <td class="px-5 py-3.5 text-white font-medium">Masa Monetaria M2 Real</td>
+              <td class="px-5 py-3.5"><span class="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800">Liquidez</span></td>
+              <td class="px-5 py-3.5 text-emerald-300">Miles de Millones USD (Variación %)</td>
+              <td class="px-5 py-3.5 text-gray-400">Mensual</td>
             </tr>
           </tbody>
         </table>
@@ -288,138 +269,138 @@
     </div>
   </section>
 
-  <!-- Architecture & System Design -->
-  <section class="py-20 border-t border-white/5 bg-slate-950" id="architecture">
+  <!-- Arquitectura del Sistema -->
+  <section class="py-16 border-b border-gray-800/80 bg-gray-950/40" id="arquitectura">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400">System Architecture</h2>
-        <h3 class="text-3xl font-extrabold text-white mt-2">End-to-End Intelligence Pipeline</h3>
-        <p class="text-slate-400 mt-3 text-sm">Deterministic ingestion, zero-allocation caching, and structured inference without single points of failure.</p>
+        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-sky-400">Diseño Técnico</h2>
+        <h3 class="text-2xl sm:text-3xl font-bold text-white mt-1">Pipeline de Inteligencia End-to-End</h3>
+        <p class="text-gray-400 mt-2 text-sm">Flujo desacoplado y protegido contra fallos de red y dependencias externas.</p>
       </div>
 
-      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="glass-card p-6 rounded-xl space-y-3">
-          <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">1</div>
-          <h4 class="text-white font-bold text-base">Ingest & Guard</h4>
-          <p class="text-slate-400 text-xs leading-relaxed">
-            Asynchronous HTTP clients with exponential retry strategies. Includes internal SSRF validation (<code class="text-cyan-400">assert_safe_remote_url</code>) blocking private IP spaces and metadata endpoints.
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="panel-card p-6 rounded-xl space-y-3">
+          <div class="text-sky-400 font-mono text-sm font-bold">1. Ingesta y Seguridad</div>
+          <h4 class="text-white font-semibold text-base">Clientes Asíncronos HTTP</h4>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            Consultas asíncronas a la API de FRED y feeds RSS oficiales (FOMC, BCE) con reintentos exponenciales y protección defensiva SSRF (<code class="text-sky-400">assert_safe_remote_url</code>) para aislar subredes privadas.
           </p>
         </div>
-        <div class="glass-card p-6 rounded-xl space-y-3">
-          <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">2</div>
-          <h4 class="text-white font-bold text-base">Deduplicate & Reason</h4>
-          <p class="text-slate-400 text-xs leading-relaxed">
-            Local SQLite database operating in WAL mode stores statement SHA-256 digests. Evaluates monetary stance via structured Pydantic schemas with automatic rule-based fallback when offline.
+        <div class="panel-card p-6 rounded-xl space-y-3">
+          <div class="text-sky-400 font-mono text-sm font-bold">2. Almacenamiento y Razonamiento</div>
+          <h4 class="text-white font-semibold text-base">SQLite WAL & Modelos LLM</h4>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            Deduplicación de comunicados mediante hash SHA-256 en base de datos local SQLite en modo WAL. Evaluación de postura monetaria vía schemas Pydantic con fallback heurístico automático.
           </p>
         </div>
-        <div class="glass-card p-6 rounded-xl space-y-3">
-          <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">3</div>
-          <h4 class="text-white font-bold text-base">Render & Dispatch</h4>
-          <p class="text-slate-400 text-xs leading-relaxed">
-            Generates yield curve charts using headless Matplotlib (<code class="text-cyan-400">Agg</code>), compiles executive Markdown briefs, renders Rich terminal tables, and pushes HTML-escaped Telegram notifications.
+        <div class="panel-card p-6 rounded-xl space-y-3">
+          <div class="text-sky-400 font-mono text-sm font-bold">3. Visualización y Despacho</div>
+          <h4 class="text-white font-semibold text-base">Matplotlib Headless & Canales</h4>
+          <p class="text-gray-400 text-xs leading-relaxed">
+            Generación de gráficos de curva de rendimiento (10Y - 2Y) en modo headless (<code class="text-sky-400">Agg</code>), renderizado de briefs Markdown en disco y alertas push a Telegram con parseo HTML seguro.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CLI Reference -->
-  <section class="py-20 border-t border-white/5 bg-slate-900/40" id="cli">
+  <!-- Comandos CLI -->
+  <section class="py-16 border-b border-gray-800/80" id="comandos">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400">CLI & Automation</h2>
-        <h3 class="text-3xl font-extrabold text-white mt-2">Command Line Interface</h3>
-        <p class="text-slate-400 mt-3 text-sm">Built with Typer and Rich for fluid local inspection and headless background execution.</p>
+        <h2 class="text-xs font-mono font-bold tracking-widest uppercase text-sky-400">Interfaz de Comandos</h2>
+        <h3 class="text-2xl sm:text-3xl font-bold text-white mt-1">Manual de Referencia CLI</h3>
+        <p class="text-gray-400 mt-2 text-sm">Comandos para escaneo puntual, ejecución en segundo plano y diagnóstico de conectividad.</p>
       </div>
 
-      <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto font-mono text-xs">
-        <div class="p-5 rounded-xl bg-slate-950 border border-white/10 space-y-2">
-          <div class="text-cyan-400 font-bold">$ macro-sentinel scan --now</div>
-          <p class="text-slate-400 font-sans text-xs">Executes an immediate end-to-end macroeconomic intelligence scan, generates Markdown report, plots yield curve, and renders full Rich terminal dashboard.</p>
+      <div class="mt-10 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+          <div class="text-sky-400 font-bold">$ macro-sentinel scan --now</div>
+          <p class="text-gray-400 font-sans text-xs">Ejecuta un escaneo completo inmediato: ingesta FRED, análisis LLM, generación de gráfico y reporte en consola interactiva.</p>
         </div>
-        <div class="p-5 rounded-xl bg-slate-950 border border-white/10 space-y-2">
-          <div class="text-cyan-400 font-bold">$ macro-sentinel daemon</div>
-          <p class="text-slate-400 font-sans text-xs">Starts the APScheduler background daemon in the foreground, executing scans periodically according to <code class="text-cyan-400">SCAN_CRON_SCHEDULE</code>.</p>
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+          <div class="text-sky-400 font-bold">$ macro-sentinel daemon</div>
+          <p class="text-gray-400 font-sans text-xs">Inicia el demonio de tareas programadas (APScheduler) en primer plano para ejecutar escaneos según <code class="text-sky-400">SCAN_CRON_SCHEDULE</code>.</p>
         </div>
-        <div class="p-5 rounded-xl bg-slate-950 border border-white/10 space-y-2">
-          <div class="text-cyan-400 font-bold">$ macro-sentinel list-series</div>
-          <p class="text-slate-400 font-sans text-xs">Outputs formatted tables of all registered FRED time series IDs, calculation units, and central bank RSS/Atom endpoints.</p>
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+          <div class="text-sky-400 font-bold">$ macro-sentinel list-series</div>
+          <p class="text-gray-400 font-sans text-xs">Muestra en formato tabla las series de FRED registradas, sus unidades de cálculo y los feeds oficiales configurados.</p>
         </div>
-        <div class="p-5 rounded-xl bg-slate-950 border border-white/10 space-y-2">
-          <div class="text-cyan-400 font-bold">$ macro-sentinel test-apis</div>
-          <p class="text-slate-400 font-sans text-xs">Verifies live external network connectivity to the St. Louis Fed API and Central Bank RSS feeds with immediate pass/fail output.</p>
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+          <div class="text-sky-400 font-bold">$ macro-sentinel test-apis</div>
+          <p class="text-gray-400 font-sans text-xs">Comprueba la conectividad de red directa contra los endpoints de FRED y los feeds RSS de la Fed y el BCE.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="py-12 border-t border-white/10 bg-slate-950 text-center text-xs text-slate-500 font-mono">
-    <div class="max-w-7xl mx-auto px-4 space-y-3">
-      <div class="flex items-center justify-center gap-2 text-slate-400">
-        <span>🦅 MacroSentinel</span> • <span>MIT License</span> • <span>Crafted by Dario</span>
+  <!-- Pie de Página -->
+  <footer class="py-12 bg-gray-950 text-center text-xs text-gray-500 font-mono">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <div class="text-gray-400">
+        <span>🦅 MacroSentinel</span> • <span>Licencia MIT</span> • <span>Desarrollado por Oscar Madera (<a href="https://github.com/oscarbol09" target="_blank" class="text-sky-400 hover:underline">@oscarbol09</a>)</span>
       </div>
-      <div>Designed for Quantitative Researchers, Asset Allocators & Central Bank Watchers.</div>
+      <div>Repositorio Oficial: <a href="https://github.com/oscarbol09/MacroSentinel" class="text-gray-400 hover:text-white underline">github.com/oscarbol09/MacroSentinel</a></div>
     </div>
   </footer>
 
   <script>
-    function copyCommand() {
+    function copiarComando() {
       navigator.clipboard.writeText("pip install -r requirements.txt && macro-sentinel scan --now");
-      alert("Quickstart command copied to clipboard!");
+      alert("Comando copiado al portapapeles.");
     }
 
-    function updateSimulator(val) {
+    function actualizarSimulador(val) {
       const score = parseFloat(val);
-      const scoreDisp = document.getElementById("toneScoreDisplay");
-      const regimeTitle = document.getElementById("regimeTitle");
-      const vocabBox = document.getElementById("vocabularyBox");
-      const allocBonds = document.getElementById("allocBonds");
-      const allocEquities = document.getElementById("allocEquities");
-      const allocFX = document.getElementById("allocFX");
+      const scoreBadge = document.getElementById("scoreBadge");
+      const tituloRegimen = document.getElementById("tituloRegimen");
+      const cajaVocabulario = document.getElementById("cajaVocabulario");
+      const txtRentaFija = document.getElementById("txtRentaFija");
+      const txtAcciones = document.getElementById("txtAcciones");
+      const txtDivisas = document.getElementById("txtDivisas");
 
-      scoreDisp.textContent = (score >= 0 ? "+" : "") + score.toFixed(2);
+      scoreBadge.textContent = (score >= 0 ? "+" : "") + score.toFixed(2);
 
       if (score >= 0.5) {
-        scoreDisp.className = "text-lg font-extrabold text-red-400 px-3 py-1 bg-red-950/40 rounded-lg border border-red-500/30";
-        regimeTitle.textContent = "Aggressive Monetary Tightening";
-        regimeTitle.className = "text-xl font-bold text-red-400 mt-1";
-        vocabBox.textContent = '"Inflation is far too high; committee is committed to bringing inflation back to 2% target with further rate increases."';
-        allocBonds.textContent = "Short duration favored; cash yields attractive; curve inversion risk high.";
-        allocEquities.textContent = "Multiple compression risk across high-beta growth; seek high free-cash-flow yield.";
-        allocFX.textContent = "Strong USD appreciation driven by aggressive terminal rate differentials.";
+        scoreBadge.className = "text-base font-bold text-rose-400 px-3 py-1 bg-gray-900 border border-rose-800 rounded-md";
+        tituloRegimen.textContent = "Restricción Monetaria Agresiva";
+        tituloRegimen.className = "text-lg font-bold text-rose-400 mt-1";
+        cajaVocabulario.textContent = '"La inflación se mantiene inaceptablemente alta; el comité continuará incrementando la tasa de política monetaria para restablecer la estabilidad de precios."';
+        txtRentaFija.textContent = "Preferencia por duraciones cortas y liquidez en efectivo; alto riesgo de inversión prolongada en la curva de rendimientos.";
+        txtAcciones.textContent = "Riesgo de compresión de múltiplos en crecimiento de beta alta; sesgo hacia empresas con alto flujo de caja libre.";
+        txtDivisas.textContent = "Fortalecimiento sustancial del dólar impulsado por diferenciales de tasas terminales.";
       } else if (score >= 0.1) {
-        scoreDisp.className = "text-lg font-extrabold text-amber-400 px-3 py-1 bg-amber-950/40 rounded-lg border border-amber-500/30";
-        regimeTitle.textContent = "Late-Cycle Restrictive Stance";
-        regimeTitle.className = "text-xl font-bold text-amber-400 mt-1";
-        vocabBox.textContent = '"Inflation remains somewhat elevated; committee is data-dependent and attentive to risks to both sides of dual mandate."';
-        allocBonds.textContent = "Duration risk attractive as peak policy rates cap long-term yield spikes.";
-        allocEquities.textContent = "Quality cash-generative equities outperform cyclical sectors sensitive to borrowing costs.";
-        allocFX.textContent = "Broad dollar strength sustained by rate differentials against easing central banks.";
+        scoreBadge.className = "text-base font-bold text-amber-400 px-3 py-1 bg-gray-900 border border-amber-800 rounded-md";
+        tituloRegimen.textContent = "Postura Restrictiva de Fin de Ciclo";
+        tituloRegimen.className = "text-lg font-bold text-amber-400 mt-1";
+        cajaVocabulario.textContent = '"La inflación continúa algo elevada; el comité mantiene una postura dependiente de los datos y atento a los riesgos en ambos mandatos."';
+        txtRentaFija.textContent = "Riesgo de duración atractivo; tasas terminales limitan subidas adicionales en yields largos.";
+        txtAcciones.textContent = "Compañías generadoras de flujo de caja libre de calidad superan a sectores de beta alta.";
+        txtDivisas.textContent = "Dólar respaldado por diferenciales de tasas de interés frente a otros bancos centrales.";
       } else if (score > -0.2) {
-        scoreDisp.className = "text-lg font-extrabold text-yellow-300 px-3 py-1 bg-yellow-950/40 rounded-lg border border-yellow-500/30";
-        regimeTitle.textContent = "Neutral Policy Transition (Goldilocks)";
-        regimeTitle.className = "text-xl font-bold text-yellow-300 mt-1";
-        vocabBox.textContent = '"Risks to achieving employment and inflation goals are moving into better balance."';
-        allocBonds.textContent = "Neutral duration; credit spreads narrow as soft landing odds increase.";
-        allocEquities.textContent = "Broad equity market participation; mid-caps and cyclicals gain momentum.";
-        allocFX.textContent = "Range-bound dollar; capital rotation into international markets.";
+        scoreBadge.className = "text-base font-bold text-yellow-300 px-3 py-1 bg-gray-900 border border-yellow-800 rounded-md";
+        tituloRegimen.textContent = "Transición Neutral / Escenario Goldilocks";
+        tituloRegimen.className = "text-lg font-bold text-yellow-300 mt-1";
+        cajaVocabulario.textContent = '"Los riesgos para alcanzar los objetivos de empleo e inflación están convergiendo hacia un equilibrio más sostenible."';
+        txtRentaFija.textContent = "Duración neutral; estrechamiento de spreads de crédito corporativo ante menor riesgo de recesión.";
+        txtAcciones.textContent = "Expansión del mercado bursátil; rotación positiva hacia empresas medianas y sectores cíclicos.";
+        txtDivisas.textContent = "Dólar en rango lateral; rotación de flujos hacia mercados emergentes e internacionales.";
       } else if (score > -0.6) {
-        scoreDisp.className = "text-lg font-extrabold text-emerald-400 px-3 py-1 bg-emerald-950/40 rounded-lg border border-emerald-500/30";
-        regimeTitle.textContent = "Monetary Recalibration & Easing Cycle";
-        regimeTitle.className = "text-xl font-bold text-emerald-400 mt-1";
-        vocabBox.textContent = '"Progress toward inflation target allows committee to begin dialling back policy restraint to support labor market."';
-        allocBonds.textContent = "Aggressive curve steepener trades favored; front-end rally accelerates.";
-        allocEquities.textContent = "Growth equities and rate-sensitive sectors (Real Estate, Utilities) outperform.";
-        allocFX.textContent = "Dollar softens as rate differential advantages erode.";
+        scoreBadge.className = "text-base font-bold text-emerald-400 px-3 py-1 bg-gray-900 border border-emerald-800 rounded-md";
+        tituloRegimen.textContent = "Recalibración y Ciclo de Recortes";
+        tituloRegimen.className = "text-lg font-bold text-emerald-400 mt-1";
+        cajaVocabulario.textContent = '"El progreso sostenido hacia el objetivo de inflación permite al comité reducir el grado de restricción monetaria para apoyar el empleo."';
+        txtRentaFija.textContent = "Estrategias de empinamiento de curva (steepeners); fuerte rally en el tramo corto de rendimientos.";
+        txtAcciones.textContent = "Sectores sensibles a los tipos de interés (inmobiliario, utilities y tecnología) lideran los retornos.";
+        txtDivisas.textContent = "Debilitamiento moderado del dólar al comprimirse la ventaja de diferencial de tasas.";
       } else {
-        scoreDisp.className = "text-lg font-extrabold text-emerald-300 px-3 py-1 bg-emerald-950/60 rounded-lg border border-emerald-400/50";
-        regimeTitle.textContent = "Emergency Quantitative Accommodation";
-        regimeTitle.className = "text-xl font-bold text-emerald-300 mt-1";
-        vocabBox.textContent = '"Committee will use its full range of tools to support economy and maintain flow of credit to households."';
-        allocBonds.textContent = "Maximum duration extension; government bonds provide flight-to-safety protection.";
-        allocEquities.textContent = "Defensive positioning; gold and hard assets rally; cyclical earnings downgrade risk.";
-        allocFX.textContent = "Flight-to-safety dynamic; massive liquidity injections depress fiat purchasing power.";
+        scoreBadge.className = "text-base font-bold text-emerald-300 px-3 py-1 bg-gray-900 border border-emerald-700 rounded-md";
+        tituloRegimen.textContent = "Acomodación Cuantitativa de Emergencia";
+        tituloRegimen.className = "text-lg font-bold text-emerald-300 mt-1";
+        cajaVocabulario.textContent = '"El comité utilizará todo su conjunto de herramientas para salvaguardar la economía y asegurar la liquidez del sistema financiero."';
+        txtRentaFija.textContent = "Extensión máxima de duración; bonos soberanos actúan como activo refugio primordial.";
+        txtAcciones.textContent = "Posicionamiento estrictamente defensivo; activos reales y oro superan ante inyecciones masivas de liquidez.";
+        txtDivisas.textContent = "Dinámica de refugio; volatilidad cambiaria elevada.";
       }
     }
   </script>

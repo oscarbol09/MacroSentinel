@@ -7,8 +7,8 @@ name = "macro-sentinel"
 version = "0.1.0"
 description = "Autonomous Macroeconomic & Central Bank Intelligence Engine"
 readme = "README.md"
-authors = [{ name = "Dario" }]
-license = { text = "MIT" }
+authors = [{ name = "Oscar Madera" }]
+license = "MIT"
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -44,6 +44,11 @@ dev = [
 
 [project.scripts]
 macro-sentinel = "macro_sentinel.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["macro_sentinel*"]
+exclude = ["data*", "tests*", "docs*"]
 
 [tool.ruff]
 line-length = 100
