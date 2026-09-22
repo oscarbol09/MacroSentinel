@@ -163,9 +163,15 @@ class FredClient:
             "DGS10": 4.12,
             "CPIAUCSL": 314.5,
             "CPILFESL": 318.2,
+            "PCEPI": 123.8,
+            "T10YIE": 2.28,
             "UNRATE": 4.1,
             "PAYEMS": 158500.0,
+            "SAHMREALTIME": 0.43,
             "M2SL": 21050.0,
+            "WALCL": 7150000.0,
+            "DTWEXBGS": 126.5,
+            "BAMLH0A0HYM2": 3.45,
         }
         val = mock_values.get(meta.series_id, 100.0)
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
