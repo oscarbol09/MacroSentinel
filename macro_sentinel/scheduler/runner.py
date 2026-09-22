@@ -1,6 +1,8 @@
 """Background worker engine and scheduler for periodic MacroSentinel runs."""
 
+import asyncio
 import logging
+import traceback
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -9,11 +11,16 @@ from apscheduler.triggers.cron import CronTrigger
 from ..analyzer.llm_reasoner import LLMReasoner
 from ..config.settings import get_settings
 from ..dispatchers.console import ConsoleDispatcher
+from ..dispatchers.email import EmailDispatcher
 from ..dispatchers.telegram import TelegramDispatcher
+from ..extractors.bls_client import BLSClient
 from ..extractors.central_banks import CentralBankExtractor
+from ..extractors.cftc_client import CFTCClient
 from ..extractors.fred_client import FredClient
+from ..extractors.treasury_client import TreasuryClient
 from ..reports.charts import ChartEngine
 from ..reports.generator import ReportGenerator
+from ..storage.quarantine import QuarantineStore
 from ..storage.sqlite_cache import SQLiteCache
 
 logger = logging.getLogger(__name__)
@@ -25,14 +32,47 @@ class SchedulerRunner:
     def __init__(self):
         self.settings = get_settings()
         self.fred_client = FredClient()
+        self.treasury_client = TreasuryClient()
+        self.bls_client = BLSClient()
+        self.cftc_client = CFTCClient()
         self.cb_extractor = CentralBankExtractor()
         self.reasoner = LLMReasoner()
         self.report_generator = ReportGenerator()
         self.chart_engine = ChartEngine()
         self.console_dispatcher = ConsoleDispatcher()
         self.telegram_dispatcher = TelegramDispatcher()
+        self.email_dispatcher = EmailDispatcher()
         self.cache = SQLiteCache()
+        self.quarantine = QuarantineStore()
         self.scheduler = AsyncIOScheduler()
+
+        self.circuit_breaker = {
+            "FRED": {"failures": 0, "skip_runs": 0},
+            "Treasury": {"failures": 0, "skip_runs": 0},
+            "BLS": {"failures": 0, "skip_runs": 0},
+            "CFTC": {"failures": 0, "skip_runs": 0},
+        }
+
+    async def _safe_extract(self, source_name: str, client: object, fetch_method: str) -> list:
+        if self.circuit_breaker[source_name]["skip_runs"] > 0:
+            logger.warning("Circuit breaker active for %s. Skipping this run.", source_name)
+            self.circuit_breaker[source_name]["skip_runs"] -= 1
+            return []
+
+        try:
+            async with client:
+                data = await getattr(client, fetch_method)()
+            self.circuit_breaker[source_name]["failures"] = 0
+            return data
+        except Exception as e:
+            self.circuit_breaker[source_name]["failures"] += 1
+            if self.circuit_breaker[source_name]["failures"] >= 3:
+                self.circuit_breaker[source_name]["skip_runs"] = 3
+                self.circuit_breaker[source_name]["failures"] = 0
+
+            logger.warning("Source %s extraction failed: %s", source_name, e)
+            self.quarantine.quarantine_failure(source_name, str(e), traceback.format_exc())
+            return []
 
     async def execute_full_pipeline(self, render_to_console: bool = True) -> None:
         """Run the complete end-to-end macroeconomic intelligence pipeline."""
@@ -40,10 +80,23 @@ class SchedulerRunner:
         logger.info("Starting MacroSentinel pipeline execution...")
 
         try:
-            # 1. Ingest macroeconomic time series
-            logger.info("Fetching macroeconomic time series from FRED API...")
-            async with self.fred_client:
-                macro_data = await self.fred_client.fetch_all_registered_series()
+            # 1. Scatter-Gather macro data extraction
+            logger.info("Fetching macroeconomic time series concurrently...")
+            extract_tasks = [
+                self._safe_extract("FRED", self.fred_client, "fetch_all_registered_series"),
+                self._safe_extract("Treasury", self.treasury_client, "fetch_all_registered_series"),
+                self._safe_extract("BLS", self.bls_client, "fetch_all_registered_series"),
+                self._safe_extract("CFTC", self.cftc_client, "fetch_all_registered_series"),
+            ]
+
+            results = await asyncio.gather(*extract_tasks, return_exceptions=True)
+
+            macro_data = []
+            for res in results:
+                if isinstance(res, Exception):
+                    logger.warning("Unexpected extraction error: %s", res)
+                elif isinstance(res, list):
+                    macro_data.extend(res)
 
             # 2. Extract central bank releases
             logger.info("Extracting latest central bank releases and statements...")
@@ -77,8 +130,9 @@ class SchedulerRunner:
                     published_date=r.published_date,
                 )
 
-            # 7. Dispatch to Telegram (if configured)
+            # 7. Dispatch to Telegram and Email (if configured)
             await self.telegram_dispatcher.send_macro_pulse(report_data)
+            await self.email_dispatcher.send_macro_digest(report_data, macro_data)
 
             # 8. Render to Console
             if render_to_console:
