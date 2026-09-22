@@ -4,9 +4,10 @@ import logging
 import re
 from datetime import datetime, timezone
 from typing import List, Optional
+
 import httpx
 from pydantic import BaseModel, ConfigDict
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from ..config.series_registry import FRED_SERIES, MacroSeriesMeta
 from ..config.settings import get_settings
@@ -79,7 +80,7 @@ class FredClient:
         }
 
         url = f"{self.base_url}/series/observations"
-        
+
         # Ensure client is available without connection leaks
         should_close = False
         client = self._client
@@ -119,7 +120,7 @@ class FredClient:
         prev = parsed_observations[1] if len(parsed_observations) > 1 else None
 
         delta = (latest.value - prev.value) if prev else None
-        
+
         delta_bps: Optional[float] = None
         delta_pct: Optional[float] = None
 
@@ -168,7 +169,7 @@ class FredClient:
         }
         val = mock_values.get(meta.series_id, 100.0)
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        
+
         delta = 0.05 if meta.unit == "Percent" else val * 0.01
         prev_val = val - delta
 

@@ -153,7 +153,7 @@ Produce an exhaustive JSON output adhering strictly to this format:
     ) -> MacroPulseReportData:
         """Deterministic heuristic analysis when LLM API keys are not supplied."""
         now_str = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-        
+
         anomalies: List[MacroAnomalyFlag] = []
         t10y2y = next((dp for dp in macro_data if dp.meta.series_id == "T10Y2Y"), None)
         if t10y2y:

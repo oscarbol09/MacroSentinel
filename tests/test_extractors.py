@@ -1,6 +1,7 @@
 """Tests for FRED client, Central Bank extractors, and network guards."""
 
 import pytest
+
 from macro_sentinel.extractors.central_banks import CentralBankExtractor, assert_safe_remote_url
 from macro_sentinel.extractors.fred_client import FredClient
 

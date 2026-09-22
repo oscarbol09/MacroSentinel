@@ -3,7 +3,9 @@
 import html
 import logging
 from typing import Optional
+
 import httpx
+
 from ..analyzer.schemas import MacroPulseReportData
 from ..config.settings import get_settings
 

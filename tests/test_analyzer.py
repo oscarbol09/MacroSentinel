@@ -1,6 +1,7 @@
 """Tests for LLMReasoner and ReportGenerator."""
 
 import pytest
+
 from macro_sentinel.analyzer.llm_reasoner import LLMReasoner
 from macro_sentinel.analyzer.schemas import PolicyStance
 from macro_sentinel.config.series_registry import FRED_SERIES

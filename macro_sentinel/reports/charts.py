@@ -3,11 +3,14 @@
 import logging
 from pathlib import Path
 from typing import Optional
+
 import matplotlib
+
 matplotlib.use("Agg")  # Non-interactive headless backend for background services
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from datetime import datetime
+
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 
 from ..config.settings import get_settings
 from ..extractors.fred_client import MacroDataPoint

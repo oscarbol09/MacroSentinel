@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import sys
+
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -15,7 +16,7 @@ if sys.platform == "win32":
     except AttributeError:
         pass
 
-from .config.series_registry import FRED_SERIES, CENTRAL_BANK_SOURCES
+from .config.series_registry import CENTRAL_BANK_SOURCES, FRED_SERIES
 from .extractors.central_banks import CentralBankExtractor
 from .extractors.fred_client import FredClient
 from .scheduler.runner import SchedulerRunner

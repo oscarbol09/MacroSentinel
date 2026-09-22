@@ -97,7 +97,7 @@ class SQLiteCache:
         with self._get_connection() as conn:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO processed_releases 
+                INSERT OR REPLACE INTO processed_releases
                 (url, content_hash, institution, title, published_date, processed_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
@@ -139,8 +139,8 @@ class SQLiteCache:
             cursor = conn.execute(
                 """
                 SELECT report_id, generated_at, primary_regime, tone_score, stance, confidence, report_path
-                FROM report_history 
-                ORDER BY generated_at DESC 
+                FROM report_history
+                ORDER BY generated_at DESC
                 LIMIT ?
                 """,
                 (limit,),

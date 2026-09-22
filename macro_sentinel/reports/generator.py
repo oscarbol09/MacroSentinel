@@ -72,8 +72,8 @@ class ReportGenerator:
             chart_section = f"\n## 📊 Curva de Rendimientos y Estructura Temporal\n\n![Treasury Yield Curve]({chart_rel})\n\n---\n"
 
         content = f"""# 🦅 MacroSentinel: Macro Pulse Report
-**ID del Reporte:** `{report_data.report_id}`  
-**Fecha de Generación:** `{report_data.generated_at}`  
+**ID del Reporte:** `{report_data.report_id}`
+**Fecha de Generación:** `{report_data.generated_at}`
 **Régimen Dominante:** **{report_data.primary_regime}**
 
 ---

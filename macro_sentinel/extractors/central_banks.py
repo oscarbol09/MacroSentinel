@@ -3,10 +3,11 @@
 import ipaddress
 import logging
 import socket
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import List, Optional
 from urllib.parse import urlparse
-import xml.etree.ElementTree as ET
+
 import httpx
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, ConfigDict
