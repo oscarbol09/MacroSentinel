@@ -15,6 +15,22 @@ class PolicyStance(str, Enum):
     ULTRA_DOVISH = "Ultra-Dovish"
 
 
+class RegimeClassification(str, Enum):
+    """Investment Clock quadrants."""
+    GOLDILOCKS = "Goldilocks"
+    REFLATION = "Reflation"
+    STAGFLATION = "Stagflation"
+    DISINFLATION = "Disinflation"
+    LATE_CYCLE = "Late-Cycle Transition"
+
+
+class DialecticalArgument(BaseModel):
+    """One side of the Hawk/Dove debate."""
+    stance: str = Field(..., description="Hawkish or Dovish stance.")
+    key_evidence: List[str] = Field(..., description="Specific data points cited.")
+    conclusion: str = Field(..., description="The argument's conclusion.")
+
+
 class HawkishDovishTone(BaseModel):
     """Quantitative and qualitative tone assessment of a central bank statement."""
     score: float = Field(
@@ -42,6 +58,7 @@ class MacroAnomalyFlag(BaseModel):
     severity: str = Field(..., description="Severity level: LOW, MEDIUM, HIGH, CRITICAL.")
     title: str = Field(..., description="Short headline of the anomaly.")
     description: str = Field(..., description="Detailed description of what the data implies.")
+    data_source: str = Field(default="FRED", description="Which API the anomaly came from.")
     historical_precedent: Optional[str] = Field(
         None, description="Relevant historical comparison (e.g., 2007 yield curve inversion)."
     )
@@ -67,6 +84,9 @@ class MacroPulseReportData(BaseModel):
         ..., description="Current regime: e.g., 'Late-Cycle Disinflation', 'Stagflationary Pressure', 'Goldilocks Soft Landing', 'Recessionary Contraction'."
     )
     tone_assessment: HawkishDovishTone
+    regime_classification: Optional[RegimeClassification] = None
+    dialectical_debate: Optional[List[DialecticalArgument]] = None
+    tone_delta_from_previous: Optional[float] = None
     anomalies: List[MacroAnomalyFlag] = Field(default_factory=list)
     cross_asset_implications: List[str] = Field(
         default_factory=list,

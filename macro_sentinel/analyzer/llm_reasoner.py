@@ -10,10 +10,12 @@ from ..config.settings import get_settings
 from ..extractors.central_banks import CentralBankRelease
 from ..extractors.fred_client import MacroDataPoint
 from .schemas import (
+    DialecticalArgument,
     HawkishDovishTone,
     MacroAnomalyFlag,
     MacroPulseReportData,
     PolicyStance,
+    RegimeClassification,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,6 +106,7 @@ class LLMReasoner:
             {
                 "executive_summary": "Detailed 2-3 paragraph summary connecting data and speech.",
                 "primary_regime": "Late-Cycle Disinflation",
+                "regime_classification": "Disinflation",
                 "tone_assessment": {
                     "score": 0.25,
                     "stance": "Hawkish",
@@ -112,12 +115,26 @@ class LLMReasoner:
                     "key_phrases_dovish": ["job gains have moderated", "progress toward 2% target"],
                     "rationale": "Clear focus on data dependency with slight hawkish tilt due to sticky services inflation.",
                 },
+                "dialectical_debate": [
+                    {
+                        "stance": "Hawkish",
+                        "key_evidence": ["Sticky core services inflation", "Solid wage growth metrics"],
+                        "conclusion": "The Fed must maintain restrictive rates longer to prevent inflation expectations from unanchoring."
+                    },
+                    {
+                        "stance": "Dovish",
+                        "key_evidence": ["Cooling labor market indicators", "Decelerating headline inflation"],
+                        "conclusion": "Rate normalization is necessary to prevent an unintended policy tightening as inflation drops."
+                    }
+                ],
+                "tone_delta_from_previous": 0.0,
                 "anomalies": [
                     {
                         "indicator": "T10Y2Y",
                         "severity": "HIGH",
                         "title": "Yield Curve Un-Inversion Dynamics",
                         "description": "Spread transitioning from inverted to positive, signaling late-cycle transition.",
+                        "data_source": "FRED",
                         "historical_precedent": "Pre-2008 and Pre-2001 dis-inversion phase.",
                     }
                 ],
@@ -135,7 +152,20 @@ class LLMReasoner:
         )
 
         return f"""
-Analyze the following live macroeconomic indicators and central bank releases:
+Analyze the following live macroeconomic indicators and central bank releases.
+
+### Financial Chain-of-Thought (FinCoT) Framework:
+Before populating the JSON, implicitly process these sequential steps in your reasoning:
+- Step 1: Diagnose the published data — which indicators surprised vs consensus?
+- Step 2: Evaluate the Fed's reaction function — how do these data points shift rate probability?
+- Step 3: Transmission to the yield curve — what does this imply for 10Y-2Y spread, breakevens, credit?
+- Step 4: Cross-asset implications — equities, bonds, dollar, commodities
+
+### Dialectical Debate (Hawk vs Dove):
+You must explicitly synthesize the policy outlook by presenting both sides:
+- Present the HAWKISH case: evidence of inflation persistence, labor market overheating
+- Present the DOVISH case: evidence of demand weakness, disinflation progress
+- Then SYNTHESIZE both perspectives into your final tone assessment
 
 ### 1. Macroeconomic Indicators (FRED Data):
 {chr(10).join(macro_summary)}
@@ -164,6 +194,7 @@ Produce an exhaustive JSON output adhering strictly to this format:
                         severity="HIGH",
                         title="Inverted Treasury Yield Curve (10Y - 2Y)",
                         description=f"Spread is inverted at {t10y2y.latest_value:.2f}%, historically a leading indicator of macroeconomic slowdown.",
+                        data_source="FRED",
                         historical_precedent="1989, 2000, 2006-2007 recessionary lead cycles.",
                     )
                 )
@@ -174,11 +205,14 @@ Produce an exhaustive JSON output adhering strictly to this format:
                         severity="MEDIUM",
                         title="Normalized Yield Curve (Dis-inversion Phase)",
                         description=f"Spread is positive at {t10y2y.latest_value:.2f}%, indicating transition towards monetary normalization.",
+                        data_source="FRED",
                         historical_precedent="Post-inversion steepening historically precedes rate cut cycles.",
                     )
                 )
 
         unrate = next((dp for dp in macro_data if dp.meta.series_id == "UNRATE"), None)
+        cpi = next((dp for dp in macro_data if dp.meta.series_id == "CPIAUCSL"), None)
+
         if unrate and unrate.delta and unrate.delta > 0.3:
             anomalies.append(
                 MacroAnomalyFlag(
@@ -186,9 +220,35 @@ Produce an exhaustive JSON output adhering strictly to this format:
                     severity="HIGH",
                     title="Sahm Rule Warning: Labor Market Cooling",
                     description=f"Unemployment rate rose to {unrate.latest_value:.1f}%, reflecting emerging softness in hiring momentum.",
+                    data_source="FRED",
                     historical_precedent="Sahm rule threshold triggered during historical cycle turns.",
                 )
             )
+
+        # Basic Regime Heuristic
+        regime_classification = RegimeClassification.LATE_CYCLE
+        if unrate and cpi:
+            if (unrate.delta or 0) > 0 and (cpi.delta or 0) < 0:
+                regime_classification = RegimeClassification.DISINFLATION
+            elif (unrate.delta or 0) > 0 and (cpi.delta or 0) > 0:
+                regime_classification = RegimeClassification.STAGFLATION
+            elif (unrate.delta or 0) < 0 and (cpi.delta or 0) > 0:
+                regime_classification = RegimeClassification.REFLATION
+            elif (unrate.delta or 0) < 0 and (cpi.delta or 0) < 0:
+                regime_classification = RegimeClassification.GOLDILOCKS
+
+        dialectical_debate = [
+            DialecticalArgument(
+                stance="Hawkish",
+                key_evidence=["Inflation remains somewhat elevated above target", "Service sectors showing resilience"],
+                conclusion="Policy should remain restrictive to prevent inflation persistence."
+            ),
+            DialecticalArgument(
+                stance="Dovish",
+                key_evidence=["Labor market is showing signs of cooling", "Trajectory of inflation is downward"],
+                conclusion="Restrictive policy risks unnecessary economic damage as targets are approached."
+            )
+        ]
 
         return MacroPulseReportData(
             report_id=f"MP-{now_str}",
@@ -199,6 +259,7 @@ Produce an exhaustive JSON output adhering strictly to this format:
                 "while yield curve dynamics signal a transition from late-cycle tightening to potential recalibration."
             ),
             primary_regime="Late-Cycle Restrictive Stance",
+            regime_classification=regime_classification,
             tone_assessment=HawkishDovishTone(
                 score=0.20,
                 stance=PolicyStance.HAWKISH,
@@ -216,6 +277,8 @@ Produce an exhaustive JSON output adhering strictly to this format:
                     "seeking greater confidence in inflation trajectories before aggressive easing."
                 ),
             ),
+            dialectical_debate=dialectical_debate,
+            tone_delta_from_previous=0.0,
             anomalies=anomalies,
             cross_asset_implications=[
                 "Fixed Income: Duration risk remains attractive as peak policy rates cap long-term yield spikes.",
