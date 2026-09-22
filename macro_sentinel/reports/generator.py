@@ -71,11 +71,32 @@ class ReportGenerator:
             chart_rel = chart_path.as_posix()
             chart_section = f"\n## 📊 Curva de Rendimientos y Estructura Temporal\n\n![Treasury Yield Curve]({chart_rel})\n\n---\n"
 
+        dialectic_block = []
+        if report_data.dialectical_debate:
+            for d in report_data.dialectical_debate:
+                icon = "🦅" if d.stance == "Hawkish" else "🕊️"
+                evidence_items = "\n".join(f"    - {e}" for e in d.key_evidence)
+                dialectic_block.append(
+                    f"- **{icon} Argumento {d.stance}:**\n{evidence_items}\n    - *Conclusión:* {d.conclusion}"
+                )
+        dialectic_text = "\n".join(dialectic_block) if dialectic_block else ""
+        dialectic_section = (
+            f"\n## ⚖️ Debate Dialéctico de Política Monetaria (Halcón vs. Paloma)\n\n{dialectic_text}\n\n---\n"
+            if dialectic_text
+            else ""
+        )
+
+        regime_badge = (
+            f"**Cuadrante Investment Clock:** `{report_data.regime_classification.value}`\n"
+            if report_data.regime_classification
+            else ""
+        )
+
         content = f"""# 🦅 MacroSentinel: Macro Pulse Report
 **ID del Reporte:** `{report_data.report_id}`
 **Fecha de Generación:** `{report_data.generated_at}`
 **Régimen Dominante:** **{report_data.primary_regime}**
-
+{regime_badge}
 ---
 
 ## 🎯 Postura de Política Monetaria (Central Bank Tone)
@@ -92,7 +113,7 @@ class ReportGenerator:
 
 * **Frases Dovish Clave:**
 {dovish_quotes}
-
+{dialectic_section}
 ---
 
 ## 📝 Resumen Ejecutivo
@@ -100,9 +121,9 @@ class ReportGenerator:
 
 ---
 
-## 📈 Tablero de Indicadores Macroeconómicos (FRED Data)
+## 📈 Tablero de Inteligencia Macroeconómica Multi-Fuente
 
-| Indicador | Última Lectura | Variación Reciente | Fecha Oficial |
+| Indicador / Serie | Última Lectura | Variación Reciente | Fecha Oficial |
 | :--- | :--- | :--- | :--- |
 {table_body}
 {chart_section}
@@ -122,7 +143,7 @@ class ReportGenerator:
 {watchpoints_text}
 
 ---
-_Generado automáticamente por MacroSentinel Engine. Datos oficiales extraídos de St. Louis Fed FRED y Bancos Centrales._
+_Generado automáticamente por MacroSentinel Engine. Fuentes oficiales: Federal Reserve FRED, U.S. Treasury, BLS, CFTC y Bancos Centrales._
 """
         output_path.write_text(content, encoding="utf-8")
         return output_path

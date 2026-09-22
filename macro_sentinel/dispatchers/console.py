@@ -35,12 +35,31 @@ class ConsoleDispatcher:
         score_color = "red" if score > 0.2 else ("green" if score < -0.2 else "yellow")
         stance_str = f"[{score_color}]{report_data.tone_assessment.stance.value} ({score:+.2f})[/{score_color}]"
 
+        regime_badge = (
+            f"  |  [bold]Clock Quadrant:[/bold] [bold yellow]{report_data.regime_classification.value}[/bold yellow]"
+            if report_data.regime_classification
+            else ""
+        )
+
         header_text = Text.from_markup(
-            f"[bold]Report ID:[/bold] {report_data.report_id}  |  [bold]Regime:[/bold] [magenta]{report_data.primary_regime}[/magenta]\n"
+            f"[bold]Report ID:[/bold] {report_data.report_id}  |  [bold]Regime:[/bold] [magenta]{report_data.primary_regime}[/magenta]{regime_badge}\n"
             f"[bold]Central Bank Stance:[/bold] {stance_str} (Confianza: {report_data.tone_assessment.confidence * 100:.0f}%)\n"
             f"[dim]{report_data.tone_assessment.rationale}[/dim]"
         )
         self.console.print(Panel(header_text, title="🎯 Monetary Policy & Macro State", border_style="cyan"))
+
+        if report_data.dialectical_debate:
+            debate_lines = []
+            for d in report_data.dialectical_debate:
+                color = "red" if d.stance == "Hawkish" else "green"
+                icon = "🦅" if d.stance == "Hawkish" else "🕊️"
+                evidence_str = " | ".join(d.key_evidence)
+                debate_lines.append(
+                    f"[{color} bold]{icon} {d.stance}:[/{color} bold] {d.conclusion}\n  [dim]Evidencia: {evidence_str}[/dim]"
+                )
+            self.console.print(
+                Panel("\n\n".join(debate_lines), title="⚖️ Debate Dialéctico de Política Monetaria", border_style="yellow")
+            )
 
         self.console.print(
             Panel(
@@ -50,7 +69,7 @@ class ConsoleDispatcher:
             )
         )
 
-        table = Table(title="📈 Macroeconomic Indicators Dashboard (FRED Data)", show_header=True, header_style="bold magenta")
+        table = Table(title="📈 Multi-Source Macro & Market Indicators", show_header=True, header_style="bold magenta")
         table.add_column("Indicator", style="bold")
         table.add_column("Category")
         table.add_column("Latest Value", justify="right")
