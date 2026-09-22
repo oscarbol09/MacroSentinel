@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     fred_api_key: Optional[str] = Field(default=None, alias="FRED_API_KEY")
     fred_base_url: str = "https://api.stlouisfed.org/fred"
 
+    # Additional Data Sources
+    bls_api_key: Optional[str] = Field(default=None, alias="BLS_API_KEY")
+    cftc_app_token: Optional[str] = Field(default=None, alias="CFTC_APP_TOKEN")
+
     # LLM Settings
     gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
     openai_api_key: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
