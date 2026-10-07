@@ -46,7 +46,7 @@ dev = [
 macro-sentinel = "macro_sentinel.cli:app"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["macro_sentinel*"]
 exclude = ["data*", "tests*", "docs*"]
 
