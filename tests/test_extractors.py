@@ -113,4 +113,3 @@ def test_ssrf_guard_blocks_private_networks():
     # Safe public URL passes
     safe = assert_safe_remote_url("https://www.federalreserve.gov/feeds/press_monetary.xml")
     assert safe == "https://www.federalreserve.gov/feeds/press_monetary.xml"
-
